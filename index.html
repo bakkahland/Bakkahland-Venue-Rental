@@ -129,7 +129,7 @@ function render(){
   h += `<div class="bar">${[1,2,3,4,5,6].map(i=>`<i class="${i<=n?'on':''}"></i>`).join("")}</div>`;
   h += `<h2>${n<6?`ขั้นตอนที่ ${n}/5: `:""}${STEP_TITLES[n-1]}</h2><p class="sub">${n<6?"กรอกข้อมูลเพื่อแจ้งความประสงค์เช่าสถานที่":"โปรดตรวจสอบความถูกต้องก่อนกดส่ง"}</p><div class="card">`;
   if(n===1) h += field("name","ชื่อ-นามสกุล *",'autocomplete="name"') + field("phone","เบอร์โทรศัพท์ *",'type="tel" inputmode="tel" autocomplete="tel"') +
-    field("email","Email *",'type="email" inputmode="email" autocomplete="email"') + field("line","LINE ID / WhatsApp *") + field("org","ชื่อหน่วยงานหรือองค์กร","",true);
+    field("email","Email",'type="email" inputmode="email" autocomplete="email"',true) + field("line","LINE ID / WhatsApp","",true) + field("org","ชื่อหน่วยงานหรือองค์กร","",true);
   if(n===2) h += field("title","ชื่องาน *") +
     `<label>ประเภทกิจกรรม *</label><select data-k="type"><option value="">เลือกประเภท</option>${TYPES.map(t=>`<option ${S.d.type===t?"selected":""}>${t}</option>`).join("")}</select><div class="err" data-e="type"></div>` +
     field("purpose","วัตถุประสงค์ในการจัดงาน *",'',false,"textarea") + field("guests","จำนวนผู้เข้าร่วมโดยประมาณ (คน) *",'type="number" inputmode="numeric" min="1"') +
@@ -165,9 +165,9 @@ function summaryHtml(){ const d=S.d;
 /* ---------- Validation ---------- */
 function validate(n){
   const d=S.d, e={}; const need=(k,m)=>{ if(!String(d[k]||"").trim()) e[k]=m; };
-  if(n===1){ need("name","กรุณากรอกชื่อ-นามสกุล"); need("line","กรุณากรอก LINE ID หรือ WhatsApp");
+  if(n===1){ need("name","กรุณากรอกชื่อ-นามสกุล");
     if(!/^[0-9+\-\s]{9,15}$/.test(d.phone||"")) e.phone="เบอร์โทรไม่ถูกต้อง";
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(d.email||"")) e.email="รูปแบบ Email ไม่ถูกต้อง"; }
+    if(d.email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(d.email)) e.email="รูปแบบ Email ไม่ถูกต้อง"; }
   if(n===2){ need("title","กรุณากรอกชื่องาน"); need("type","กรุณาเลือกประเภทกิจกรรม"); need("purpose","กรุณากรอกวัตถุประสงค์");
     if(!(Number(d.guests)>=1)) e.guests="กรุณาระบุจำนวนผู้เข้าร่วม"; }
   if(n===3 && !d.space) e.space="กรุณาเลือกพื้นที่";
@@ -190,7 +190,7 @@ function newId(){ const t=new Date(); const p=n=>String(n).padStart(2,"0");
 
 function buildMessage(id){ const d=S.d, L="━━━━━━━━━━━━━━";
   return [`📋 คำขอเช่าสถานที่ Bakkahland`,`เลขอ้างอิง: ${id}`,L,
-  `👤 ข้อมูลผู้ติดต่อ`,`ชื่อ: ${d.name}`,`โทร: ${d.phone}`,`Email: ${d.email}`,`LINE/WhatsApp: ${d.line}`,`หน่วยงาน: ${d.org||"-"}`,L,
+  `👤 ข้อมูลผู้ติดต่อ`,`ชื่อ: ${d.name}`,`โทร: ${d.phone}`,`Email: ${d.email||"-"}`,`LINE/WhatsApp: ${d.line||"-"}`,`หน่วยงาน: ${d.org||"-"}`,L,
   `🎉 รายละเอียดกิจกรรม`,`ชื่องาน: ${d.title}`,`ประเภท: ${d.type}`,`วัตถุประสงค์: ${d.purpose}`,`ผู้เข้าร่วม: ${d.guests} คน`,`รายละเอียด: ${d.detail||"-"}`,L,
   `📍 พื้นที่`,SPACES[d.space].name,L,
   `🗓️ วันและเวลา`,`วันที่: ${dateRange()}`,`เวลา: ${d.tFrom} – ${d.tTo} น.`,`เตรียมงาน: ${d.setup||"-"}`,`เก็บอุปกรณ์: ${d.pack||"-"}`,L,
