@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>เช่าสถานที่</title>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+:root{--g:#3f6b4e;--gd:#2f5139;--gl:#e6efe8;--cream:#faf6ec;--ink:#22302a;--mut:#6b7a71;--bd:#d9d4c3;--err:#b3382c}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,"Sarabun","Noto Sans Thai",sans-serif;background:var(--cream);color:var(--ink);padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.wrap{max-width:560px;margin:0 auto;padding:16px 16px 110px}
+header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+header .logo{width:36px;height:36px;border-radius:10px;background:var(--g);color:#fff;display:grid;place-items:center;font-weight:700}
+h1{font-size:18px;margin:0}h2{font-size:17px;margin:0 0 4px}
+.sub{color:var(--mut);font-size:13px;margin:0 0 14px}
+.bar{display:flex;gap:6px;margin:8px 0 18px}.bar i{flex:1;height:5px;border-radius:3px;background:var(--bd)}.bar i.on{background:var(--g)}
+.card{background:#fff;border:1px solid var(--bd);border-radius:14px;padding:16px}
+label{display:block;font-size:14px;font-weight:600;margin:14px 0 6px}label:first-child{margin-top:0}
+label small{font-weight:400;color:var(--mut)}
+input,select,textarea{width:100%;font:inherit;font-size:16px;padding:11px 12px;border:1px solid var(--bd);border-radius:10px;background:#fff;color:var(--ink)}
+textarea{min-height:84px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--g);border-color:var(--g)}
+.err{color:var(--err);font-size:12.5px;margin-top:4px;min-height:0}
+.invalid{border-color:var(--err)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opt{display:block;border:2px solid var(--bd);border-radius:14px;overflow:hidden;margin-bottom:12px;cursor:pointer;background:#fff}
+.opt input{display:none}.opt.sel{border-color:var(--g);background:var(--gl)}
+.opt .ph{height:90px;display:grid;place-items:center;font-size:38px;background:linear-gradient(135deg,#cfe0d3,#f1ead3)}
+.opt .tx{padding:10px 14px}.opt b{display:block}.opt span{font-size:13px;color:var(--mut)}
+.chk{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--bd);border-radius:10px;margin-bottom:8px;font-weight:400;font-size:15px}
+.chk input{width:20px;height:20px;margin:0;accent-color:var(--g)}
+.sum h3{font-size:14px;color:var(--g);margin:14px 0 6px;border-bottom:1px solid var(--bd);padding-bottom:4px}
+.sum h3:first-child{margin-top:0}.sum p{margin:3px 0;font-size:14px;white-space:pre-wrap}.sum p b{color:var(--mut);font-weight:500}
+.foot{position:fixed;left:0;right:0;bottom:0;background:var(--cream);border-top:1px solid var(--bd);padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
+.foot div{max-width:560px;margin:0 auto;display:flex;gap:10px}
+button{font:inherit;font-weight:600;font-size:16px;border:0;border-radius:12px;padding:13px;cursor:pointer;flex:1}
+.pri{background:var(--g);color:#fff}.pri:disabled{opacity:.55}.sec{background:#fff;color:var(--g);border:1px solid var(--g);flex:.6}
+.note{background:#fff8e1;border:1px solid #e8d48a;border-radius:10px;padding:10px 12px;font-size:13px;margin-top:14px}
+.center{text-align:center;padding:30px 8px}.big{font-size:54px}
+.alert{background:#fdeceb;border:1px solid #e6a9a3;color:#7a231b;border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:12px}
+.id{display:inline-block;background:var(--gl);color:var(--gd);font-weight:700;padding:6px 14px;border-radius:8px;letter-spacing:1px;margin:8px 0}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><div class="logo">V</div><h1>เช่าสถานที่</h1></header>
+  <div id="app"></div>
+</div>
+<div class="foot hide" id="foot"><div><button class="sec" id="back">ย้อนกลับ</button><button class="pri" id="next">ถัดไป</button></div></div>
+
+<script>
+/* ====== ตั้งค่าก่อนใช้งานจริง ====== */
+const LIFF_ID = "YOUR_LIFF_ID";            // LIFF ID จาก LINE Developers Console
+const OA_LIFF_URL = "https://liff.line.me/" + LIFF_ID; // ใช้ URL นี้ใน Rich Menu (Action: URI)
+/* ================================== */
+
+const SPACES = {
+  indoor:{icon:"🏛️",name:"ห้องภายในอาคาร (Indoor Hall)",desc:"ห้องปรับอากาศ เหมาะกับประชุม สัมมนา เวิร์กชอป"},
+  outdoor:{icon:"🌿",name:"ลานหญ้าด้านนอก (Outdoor Lawn)",desc:"พื้นที่โล่งกลางแจ้ง เหมาะกับงานเลี้ยง งานแต่งงาน กิจกรรมกลางแจ้ง"},
+  both:{icon:"✨",name:"ทั้งสองพื้นที่",desc:"ห้องภายในอาคารและลานหญ้าด้านนอกพร้อมกัน"}
+};
+const EXTRAS = ["โต๊ะและเก้าอี้","เครื่องเสียงและไมโครโฟน","โปรเจกเตอร์","ระบบไฟฟ้าเพิ่มเติม","อาหารและเครื่องดื่ม","การตกแต่งสถานที่"];
+const TYPES = ["ประชุม/สัมมนา","งานแต่งงาน","งานเลี้ยง/วันเกิด","เวิร์กชอป/อบรม","ถ่ายภาพ/ถ่ายทำ","งานตลาด/อีเวนต์","อื่น ๆ"];
+
+const S = {step:1,sending:false,sent:false,d:{extras:[]}};
+const $ = s => document.querySelector(s);
+const esc = v => String(v ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const todayStr = () => { const t=new Date(); t.setMinutes(t.getMinutes()-t.getTimezoneOffset()); return t.toISOString().slice(0,10); };
+const fmtDate = s => s ? new Date(s+"T00:00").toLocaleDateString("th-TH",{day:"numeric",month:"long",year:"numeric"}) : "-";
+
+/* ---------- LIFF environment ---------- */
+const ENV = {ready:false, inClient:false, ctxType:null, canSend:false, problem:null};
+
+async function initLiff(){
+  try{
+    await liff.init({liffId:LIFF_ID});
+    ENV.inClient = liff.isInClient();
+    if(!ENV.inClient){ ENV.problem="external"; return; }
+    if(!liff.isLoggedIn()){ liff.login({redirectUri:location.href}); return; }
+    const ctx = liff.getContext();
+    ENV.ctxType = ctx && ctx.type;
+    // sendMessages ใช้ได้เฉพาะเมื่อเปิดจากหน้าแชท: utou / room / group
+    if(!["utou","room","group"].includes(ENV.ctxType)){ ENV.problem="nochat"; }
+    // ตรวจสิทธิ์ chat_message.write
+    try{
+      const p = await liff.permission.query("chat_message.write");
+      if(p.state !== "granted"){
+        if(p.state==="prompt"){ await liff.permission.requestAll(); }
+        const p2 = await liff.permission.query("chat_message.write");
+        if(p2.state!=="granted") ENV.problem = ENV.problem || "scope";
+      }
+    }catch(e){ /* รุ่น SDK ที่ไม่รองรับ จะไปตรวจผลตอนส่งจริง */ }
+    ENV.canSend = !ENV.problem;
+  }catch(e){
+    ENV.problem="init"; ENV.initErr = e && e.message;
+  }finally{ ENV.ready=true; }
+}
+
+/* ---------- Rendering ---------- */
+const STEP_TITLES = ["ข้อมูลผู้ติดต่อ","รายละเอียดกิจกรรม","พื้นที่ที่ต้องการเช่า","วันและเวลา","ความต้องการเพิ่มเติม","ตรวจสอบข้อมูล"];
+const val = k => esc(S.d[k] ?? "");
+const field = (k,label,attrs="",opt=false,tag="input") =>
+  `<label>${label}${opt?' <small>(ไม่บังคับ)</small>':''}</label>` +
+  (tag==="textarea" ? `<textarea data-k="${k}" ${attrs}>${val(k)}</textarea>` : `<input data-k="${k}" value="${val(k)}" ${attrs}>`) +
+  `<div class="err" data-e="${k}"></div>`;
+
+function envBanner(){
+  const m = {
+    external:`<b>กรุณาเปิดผ่าน LINE</b><br>หน้านี้ส่งข้อมูลได้เฉพาะเมื่อเปิดในแอป LINE เท่านั้น เปิดแชท LINE Official Account แล้วกดเมนู “เช่าสถานที่”`,
+    nochat:`<b>ไม่พบห้องแชท</b><br>กรุณาเปิดจากเมนู “เช่าสถานที่” ในห้องแชทของ LINE OA (ไม่ใช่จากลิงก์ภายนอกหรือหน้าอื่น)`,
+    scope:`<b>ยังไม่ได้รับสิทธิ์ส่งข้อความ</b><br>กรุณาอนุญาตสิทธิ์ส่งข้อความในแชท แล้วเปิดแบบฟอร์มใหม่อีกครั้ง`,
+    init:`<b>เริ่มต้น LIFF ไม่สำเร็จ</b><br>${esc(ENV.initErr||"")} ตรวจสอบ LIFF ID และ Endpoint URL`
+  }[ENV.problem];
+  return m ? `<div class="alert">${m}${ENV.problem==="external"?`<br><a href="${OA_LIFF_URL}">ลองเปิดผ่าน LINE</a>`:""}</div>` : "";
+}
+
+function render(){
+  const app=$("#app"), foot=$("#foot");
+  if(!ENV.ready){ app.innerHTML=`<div class="center">กำลังโหลด...</div>`; foot.classList.add("hide"); return; }
+  if(S.sent){ foot.classList.add("hide"); app.innerHTML = `<div class="card center"><div class="big">✅</div><h2>ส่งข้อมูลเรียบร้อยแล้ว</h2>
+    <p>เลขอ้างอิงคำขอ</p><div class="id">${S.id}</div>
+    <p class="sub">ข้อมูลถูกส่งเข้าแชท LINE OA แล้ว เจ้าหน้าที่จะติดต่อกลับเพื่อยืนยัน<br>การส่งแบบฟอร์มเป็นเพียงการแจ้งความประสงค์ ยังไม่ถือเป็นการจองที่สมบูรณ์</p>
+    <button class="pri" id="close" style="width:100%">ปิดหน้านี้</button></div>`;
+    $("#close").onclick=()=>{ try{ liff.closeWindow(); }catch(e){} };
+    return; }
+  const n=S.step; let h = envBanner();
+  h += `<div class="bar">${[1,2,3,4,5,6].map(i=>`<i class="${i<=n?'on':''}"></i>`).join("")}</div>`;
+  h += `<h2>${n<6?`ขั้นตอนที่ ${n}/5: `:""}${STEP_TITLES[n-1]}</h2><p class="sub">${n<6?"กรอกข้อมูลเพื่อแจ้งความประสงค์เช่าสถานที่":"โปรดตรวจสอบความถูกต้องก่อนกดส่ง"}</p><div class="card">`;
+  if(n===1) h += field("name","ชื่อ-นามสกุล *",'autocomplete="name"') + field("phone","เบอร์โทรศัพท์ *",'type="tel" inputmode="tel" autocomplete="tel"') +
+    field("email","Email *",'type="email" inputmode="email" autocomplete="email"') + field("line","LINE ID / WhatsApp *") + field("org","ชื่อหน่วยงานหรือองค์กร","",true);
+  if(n===2) h += field("title","ชื่องาน *") +
+    `<label>ประเภทกิจกรรม *</label><select data-k="type"><option value="">เลือกประเภท</option>${TYPES.map(t=>`<option ${S.d.type===t?"selected":""}>${t}</option>`).join("")}</select><div class="err" data-e="type"></div>` +
+    field("purpose","วัตถุประสงค์ในการจัดงาน *",'',false,"textarea") + field("guests","จำนวนผู้เข้าร่วมโดยประมาณ (คน) *",'type="number" inputmode="numeric" min="1"') +
+    field("detail","รายละเอียดกิจกรรมเพิ่มเติม","",true,"textarea");
+  if(n===3) h += Object.entries(SPACES).map(([k,v])=>`<label class="opt ${S.d.space===k?'sel':''}"><input type="radio" name="space" value="${k}" ${S.d.space===k?"checked":""}>
+      <div class="ph">${v.icon}</div><div class="tx"><b>${v.name}</b><span>${v.desc}</span></div></label>`).join("") + `<div class="err" data-e="space"></div>`;
+  if(n===4) h += `<div class="row"><div>${field("start","วันที่ต้องการเช่า *",`type="date" min="${todayStr()}"`)}</div><div>${field("end","วันที่สิ้นสุด",`type="date" min="${todayStr()}"`,true)}</div></div>
+    <div class="row"><div>${field("tFrom","เวลาเริ่มต้น *",'type="time"')}</div><div>${field("tTo","เวลาสิ้นสุด *",'type="time"')}</div></div>
+    <div class="row"><div>${field("setup","เวลาเตรียมงาน",'type="time"',true)}</div><div>${field("pack","เวลาเก็บอุปกรณ์",'type="time"',true)}</div></div>
+    <div class="sub" style="margin-top:8px">เว้นวันที่สิ้นสุดไว้หากเช่าวันเดียว</div>`;
+  if(n===5) h += `<label>สิ่งที่ต้องการ</label>` + EXTRAS.map(x=>`<label class="chk"><input type="checkbox" data-x="${x}" ${S.d.extras.includes(x)?"checked":""}>${x}</label>`).join("") +
+    field("budget","งบประมาณที่ตั้งไว้ (บาท)",'type="number" inputmode="numeric" min="0"',true) + field("more","ความต้องการเพิ่มเติม","",true,"textarea") +
+    `<div class="note">📎 การแนบไฟล์/รูปภาพไม่รองรับในเวอร์ชันนี้ (liff.sendMessages ส่งได้เฉพาะข้อความ) สามารถส่งรูปเพิ่มเติมในแชทหลังจากส่งแบบฟอร์ม</div>`;
+  if(n===6) h += `<div class="sum">${summaryHtml()}</div><div class="note">การส่งข้อมูลถือเป็นการแจ้งความประสงค์เท่านั้น ยังไม่ถือเป็นการจองที่สมบูรณ์จนกว่าเจ้าหน้าที่จะยืนยัน</div>`;
+  h += `</div>`;
+  app.innerHTML = h;
+  foot.classList.remove("hide");
+  $("#back").style.visibility = n>1 && !S.sending ? "visible":"hidden";
+  const nx=$("#next"); nx.textContent = n===6 ? (S.sending?"กำลังส่ง...":"ส่งข้อมูล") : "ถัดไป";
+  nx.disabled = S.sending || (n===6 && !ENV.canSend);
+  window.scrollTo(0,0);
+}
+
+function rows(pairs){ return pairs.map(([a,b])=>`<p><b>${a}:</b> ${esc(b||"-")}</p>`).join(""); }
+function dateRange(){ const d=S.d; return d.end && d.end!==d.start ? `${fmtDate(d.start)} – ${fmtDate(d.end)}` : fmtDate(d.start); }
+function summaryHtml(){ const d=S.d;
+  return `<h3>ข้อมูลผู้ติดต่อ</h3>${rows([["ชื่อ",d.name],["โทร",d.phone],["Email",d.email],["LINE/WhatsApp",d.line],["หน่วยงาน",d.org]])}
+  <h3>กิจกรรม</h3>${rows([["ชื่องาน",d.title],["ประเภท",d.type],["วัตถุประสงค์",d.purpose],["ผู้เข้าร่วม",d.guests+" คน"],["รายละเอียด",d.detail]])}
+  <h3>พื้นที่</h3>${rows([["พื้นที่",SPACES[d.space].name]])}
+  <h3>วันและเวลา</h3>${rows([["วันที่",dateRange()],["เวลา",d.tFrom+" – "+d.tTo+" น."],["เตรียมงาน",d.setup],["เก็บอุปกรณ์",d.pack]])}
+  <h3>ความต้องการเพิ่มเติม</h3>${rows([["รายการ",d.extras.join(", ")],["งบประมาณ",d.budget?Number(d.budget).toLocaleString("th-TH")+" บาท":""],["อื่น ๆ",d.more]])}`; }
+
+/* ---------- Validation ---------- */
+function validate(n){
+  const d=S.d, e={}; const need=(k,m)=>{ if(!String(d[k]||"").trim()) e[k]=m; };
+  if(n===1){ need("name","กรุณากรอกชื่อ-นามสกุล"); need("line","กรุณากรอก LINE ID หรือ WhatsApp");
+    if(!/^[0-9+\-\s]{9,15}$/.test(d.phone||"")) e.phone="เบอร์โทรไม่ถูกต้อง";
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(d.email||"")) e.email="รูปแบบ Email ไม่ถูกต้อง"; }
+  if(n===2){ need("title","กรุณากรอกชื่องาน"); need("type","กรุณาเลือกประเภทกิจกรรม"); need("purpose","กรุณากรอกวัตถุประสงค์");
+    if(!(Number(d.guests)>=1)) e.guests="กรุณาระบุจำนวนผู้เข้าร่วม"; }
+  if(n===3 && !d.space) e.space="กรุณาเลือกพื้นที่";
+  if(n===4){ need("start","กรุณาเลือกวันที่"); need("tFrom","กรุณาเลือกเวลาเริ่ม"); need("tTo","กรุณาเลือกเวลาสิ้นสุด");
+    if(d.start && d.start<todayStr()) e.start="ไม่สามารถเลือกวันที่ผ่านมาแล้ว";
+    if(d.end && d.start && d.end<d.start) e.end="วันที่สิ้นสุดต้องไม่ก่อนวันที่เริ่ม";
+    if(d.tFrom && d.tTo && (!d.end||d.end===d.start) && d.tTo<=d.tFrom) e.tTo="เวลาสิ้นสุดต้องหลังเวลาเริ่ม"; }
+  if(n===5 && d.budget && Number(d.budget)<0) e.budget="งบประมาณไม่ถูกต้อง";
+  document.querySelectorAll("[data-e]").forEach(x=>x.textContent="");
+  document.querySelectorAll(".invalid").forEach(x=>x.classList.remove("invalid"));
+  for(const k in e){ const m=document.querySelector(`[data-e="${k}"]`); if(m) m.textContent=e[k];
+    const i=document.querySelector(`[data-k="${k}"]`); if(i) i.classList.add("invalid"); }
+  const f=Object.keys(e)[0]; if(f){ const el=document.querySelector(`[data-k="${f}"]`)||document.querySelector(`[data-e="${f}"]`); el&&el.scrollIntoView({block:"center"}); }
+  return !Object.keys(e).length;
+}
+
+/* ---------- Message formatting ---------- */
+function newId(){ const t=new Date(); const p=n=>String(n).padStart(2,"0");
+  return `VR-${t.getFullYear()}${p(t.getMonth()+1)}${p(t.getDate())}-${Math.random().toString(36).slice(2,6).toUpperCase()}`; }
+
+function buildMessage(id){ const d=S.d, L="━━━━━━━━━━━━━━";
+  return [`📋 คำขอเช่าสถานที่`,`เลขอ้างอิง: ${id}`,L,
+  `👤 ข้อมูลผู้ติดต่อ`,`ชื่อ: ${d.name}`,`โทร: ${d.phone}`,`Email: ${d.email}`,`LINE/WhatsApp: ${d.line}`,`หน่วยงาน: ${d.org||"-"}`,L,
+  `🎉 รายละเอียดกิจกรรม`,`ชื่องาน: ${d.title}`,`ประเภท: ${d.type}`,`วัตถุประสงค์: ${d.purpose}`,`ผู้เข้าร่วม: ${d.guests} คน`,`รายละเอียด: ${d.detail||"-"}`,L,
+  `📍 พื้นที่`,SPACES[d.space].name,L,
+  `🗓️ วันและเวลา`,`วันที่: ${dateRange()}`,`เวลา: ${d.tFrom} – ${d.tTo} น.`,`เตรียมงาน: ${d.setup||"-"}`,`เก็บอุปกรณ์: ${d.pack||"-"}`,L,
+  `➕ ความต้องการเพิ่มเติม`,`รายการ: ${d.extras.join(", ")||"-"}`,`งบประมาณ: ${d.budget?Number(d.budget).toLocaleString("th-TH")+" บาท":"-"}`,`อื่น ๆ: ${d.more||"-"}`,L,
+  `⚠️ เป็นการแจ้งความประสงค์เท่านั้น ยังไม่ใช่การจองที่สมบูรณ์`].join("\n"); }
+
+/* ---------- Submit (กันส่งซ้ำ + ยืนยันผลจริง) ---------- */
+async function submit(){
+  if(S.sending || S.sent) return;
+  if(!ENV.canSend){ render(); return; }
+  S.sending=true; render();
+  const id = S.id || (S.id=newId());           // ใช้ ID เดิมหากต้องลองส่งใหม่
+  try{
+    let text = buildMessage(id);
+    if(text.length>4900) text = text.slice(0,4900)+"…";   // ข้อความ LINE สูงสุด 5,000 ตัวอักษร
+    await liff.sendMessages([{type:"text",text}]);      // resolve เมื่อ API ยืนยันแล้วเท่านั้น
+    S.sent=true;
+  }catch(err){
+    S.sending=false; S.id=null;
+    render();
+    const m = (err && (err.code||err.message)) || "unknown";
+    const box=document.createElement("div"); box.className="alert";
+    box.innerHTML=`<b>ส่งข้อมูลไม่สำเร็จ</b><br>กรุณาลองอีกครั้ง (${esc(m)})`;
+    $("#app").prepend(box); window.scrollTo(0,0);
+    return;
+  }
+  S.sending=false; render();
+}
+
+/* ---------- Events ---------- */
+document.addEventListener("input",e=>{
+  const t=e.target;
+  if(t.dataset.k) S.d[t.dataset.k]=t.value;
+  if(t.dataset.x){ const s=new Set(S.d.extras); t.checked?s.add(t.dataset.x):s.delete(t.dataset.x); S.d.extras=[...s]; }
+  if(t.name==="space"){ S.d.space=t.value; document.querySelectorAll(".opt").forEach(o=>o.classList.toggle("sel",o.querySelector("input").checked)); }
+});
+$("#next").onclick=()=>{ if(S.step<6){ if(validate(S.step)){S.step++; render();} } else submit(); };
+$("#back").onclick=()=>{ if(S.step>1 && !S.sending){S.step--; render();} };
+
+render();
+initLiff().then(render);
+</script>
+</body>
+</html>
