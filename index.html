@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>เช่าสถานที่</title>
+<title>Bakkahland เช่าสถานที่</title>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <style>
 :root{--g:#3f6b4e;--gd:#2f5139;--gl:#e6efe8;--cream:#faf6ec;--ink:#22302a;--mut:#6b7a71;--bd:#d9d4c3;--err:#b3382c}
@@ -45,14 +45,14 @@ button{font:inherit;font-weight:600;font-size:16px;border:0;border-radius:12px;p
 </head>
 <body>
 <div class="wrap">
-  <header><div class="logo">V</div><h1>เช่าสถานที่</h1></header>
+  <header><div class="logo">B</div><h1>Bakkahland เช่าสถานที่</h1></header>
   <div id="app"></div>
 </div>
 <div class="foot hide" id="foot"><div><button class="sec" id="back">ย้อนกลับ</button><button class="pri" id="next">ถัดไป</button></div></div>
 
 <script>
 /* ====== ตั้งค่าก่อนใช้งานจริง ====== */
-const LIFF_ID = "YOUR_LIFF_ID";            // LIFF ID จาก LINE Developers Console
+const LIFF_ID = "2012604489-SOEI89Mv";            // LIFF ID จาก LINE Developers Console
 const OA_LIFF_URL = "https://liff.line.me/" + LIFF_ID; // ใช้ URL นี้ใน Rich Menu (Action: URI)
 /* ================================== */
 
@@ -186,10 +186,10 @@ function validate(n){
 
 /* ---------- Message formatting ---------- */
 function newId(){ const t=new Date(); const p=n=>String(n).padStart(2,"0");
-  return `VR-${t.getFullYear()}${p(t.getMonth()+1)}${p(t.getDate())}-${Math.random().toString(36).slice(2,6).toUpperCase()}`; }
+  return `BKL-${t.getFullYear()}${p(t.getMonth()+1)}${p(t.getDate())}-${Math.random().toString(36).slice(2,6).toUpperCase()}`; }
 
 function buildMessage(id){ const d=S.d, L="━━━━━━━━━━━━━━";
-  return [`📋 คำขอเช่าสถานที่`,`เลขอ้างอิง: ${id}`,L,
+  return [`📋 คำขอเช่าสถานที่ Bakkahland`,`เลขอ้างอิง: ${id}`,L,
   `👤 ข้อมูลผู้ติดต่อ`,`ชื่อ: ${d.name}`,`โทร: ${d.phone}`,`Email: ${d.email}`,`LINE/WhatsApp: ${d.line}`,`หน่วยงาน: ${d.org||"-"}`,L,
   `🎉 รายละเอียดกิจกรรม`,`ชื่องาน: ${d.title}`,`ประเภท: ${d.type}`,`วัตถุประสงค์: ${d.purpose}`,`ผู้เข้าร่วม: ${d.guests} คน`,`รายละเอียด: ${d.detail||"-"}`,L,
   `📍 พื้นที่`,SPACES[d.space].name,L,
@@ -209,7 +209,7 @@ async function submit(){
     await liff.sendMessages([{type:"text",text}]);      // resolve เมื่อ API ยืนยันแล้วเท่านั้น
     S.sent=true;
   }catch(err){
-    S.sending=false; S.id=null;
+    S.sending=false;
     render();
     const m = (err && (err.code||err.message)) || "unknown";
     const box=document.createElement("div"); box.className="alert";
